@@ -3,7 +3,7 @@
 
 // Конфігурація API
 const API_CONFIG = {
-    REST_COUNTRIES: 'https://restcountries.com/v3.1/all',
+    REST_COUNTRIES: 'https://restcountries.com/v3.1',
     OPEN_METEO: 'https://api.open-meteo.com/v1/forecast',
     GEOCODING: 'https://geocoding-api.open-meteo.com/v1/search',
     TIME_API: 'https://worldtimeapi.org/api/timezone'
@@ -18,7 +18,7 @@ export async function getCountryInfo(countryCode) {
     try {
         console.log(`[API] Отримання інформації про країну: ${countryCode}`);
         
-        const response = await axios.get(`https://restcountries.com/v3.1/alpha/${countryCode}`);
+        const response = await axios.get(`${API_CONFIG.REST_COUNTRIES}/alpha/${countryCode}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -51,7 +51,7 @@ export async function searchCountries(query) {
     try {
         console.log(`[API] Пошук країн: ${query}`);
         
-        const response = await axios.get(`https://restcountries.com/v3.1/name/${query}`);
+        const response = await axios.get(`${API_CONFIG.REST_COUNTRIES}/name/${query}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -71,48 +71,6 @@ export async function searchCountries(query) {
     } catch (error) {
         console.error('[API] Помилка пошуку країн:', error);
         return [];
-    }
-}
-
-/**
- * Отримати країни регіону (Пункт 4 - map, reduce)
- */
-export async function getCountriesByRegion(region) {
-    try {
-        console.log(`[API] Отримання країн регіону: ${region}`);
-        
-        const response = await axios.get(`https://restcountries.com/v3.1/region/${region}`);
-        
-        if (response.status !== 200) {
-            throw new Error(`HTTP помилка: ${response.status}`);
-        }
-        
-        // Використання map для трансформації
-        const countries = response.data.map(country => ({
-            name: country.name.common,
-            population: country.population,
-            area: country.area || 0,
-            flag: country.flags.png
-        }));
-        
-        // Використання reduce для статистики
-        const stats = countries.reduce((acc, country) => ({
-            totalPopulation: acc.totalPopulation + country.population,
-            totalArea: acc.totalArea + country.area,
-            count: acc.count + 1
-        }), { totalPopulation: 0, totalArea: 0, count: 0 });
-        
-        return {
-            countries: countries,
-            stats: {
-                ...stats,
-                avgPopulation: Math.round(stats.totalPopulation / stats.count),
-                avgArea: Math.round(stats.totalArea / stats.count)
-            }
-        };
-    } catch (error) {
-        console.error('[API] Помилка отримання країн регіону:', error);
-        return { countries: [], stats: {} };
     }
 }
 
@@ -256,7 +214,8 @@ export async function checkApiHealth() {
     
     try {
         // Перевіряємо кожне API з обробкою помилок
-        results.restCountries = await testApi('https://restcountries.com/v3.1/all');
+        // RestCountries - тестуємо через пошук України
+        results.restCountries = await testApi(`${API_CONFIG.REST_COUNTRIES}/name/Ukraine`);
         results.openMeteo = await testApi(`${API_CONFIG.OPEN_METEO}?latitude=50.45&longitude=30.52&current_weather=true`);
         results.geocoding = await testApi(`${API_CONFIG.GEOCODING}?name=Київ&count=1`);
         results.timeApi = await testApi(`${API_CONFIG.TIME_API}/Europe/Kiev`);
@@ -368,7 +327,6 @@ export default {
     getWeather,
     getWorldTime,
     searchCountries,
-    getCountriesByRegion,
     checkApiHealth,
     simulateDelay,
     generateRandomError

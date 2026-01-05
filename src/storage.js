@@ -97,7 +97,7 @@ function loadCache() {
 }
 
 // ===== ПАГІНАЦІЯ (Пункт 9) =====
-export function savePaginationState(state) {
+export function saveSettings(state) {
     try {
         localStorage.setItem(STORAGE.PAGINATION, JSON.stringify(state));
         return true;
@@ -107,7 +107,7 @@ export function savePaginationState(state) {
     }
 }
 
-export function loadPaginationState() {
+export function loadSettings() {
     try {
         const data = localStorage.getItem(STORAGE.PAGINATION);
         return data ? JSON.parse(data) : {
@@ -185,8 +185,8 @@ export default {
     loadNotes,
     saveToCache,
     loadFromCache,
-    savePaginationState,
-    loadPaginationState,
+    saveSettings,
+    loadSettings,
     clearStorage,
     isLocalStorageAvailable,
     getStorageStats
