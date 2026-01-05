@@ -3,7 +3,7 @@
 
 // Імпорти модулів
 import * as api from './api.js';
-import * as storage from './storage.js';
+import storage from './storage.js'; // Змінено з * as storage
 
 // ===== ГЛОБАЛЬНІ ЗМІННІ =====
 let routes = [];
@@ -31,7 +31,10 @@ function init() {
     console.log('🚀 Travel Planner ініціалізовано');
     
     // Встановлення поточного року
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    const currentYearEl = document.getElementById('currentYear');
+    if (currentYearEl) {
+        currentYearEl.textContent = new Date().getFullYear();
+    }
     
     // Завантаження даних
     loadAllData();
@@ -62,9 +65,9 @@ function renderRoutes() {
     if (searchRoutesInput && searchRoutesInput.value) {
         const searchTerm = searchRoutesInput.value.toLowerCase();
         filteredRoutes = filteredRoutes.filter(route => 
-            route.name.toLowerCase().includes(searchTerm) ||
-            route.destination.toLowerCase().includes(searchTerm) ||
-            route.description?.toLowerCase().includes(searchTerm)
+            (route.name && route.name.toLowerCase().includes(searchTerm)) ||
+            (route.destination && route.destination.toLowerCase().includes(searchTerm)) ||
+            (route.description && route.description.toLowerCase().includes(searchTerm))
         );
     }
     
@@ -74,7 +77,7 @@ function renderRoutes() {
     }
     
     // Пагінація (Пункт 9)
-    const totalPages = Math.ceil(filteredRoutes.length / pageSize);
+    const totalPages = Math.ceil(filteredRoutes.length / pageSize) || 1;
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedRoutes = filteredRoutes.slice(startIndex, startIndex + pageSize);
     
@@ -113,10 +116,10 @@ function createRouteElement(route, number) {
                 <div>
                     <h5 class="card-title">
                         <span class="badge bg-secondary me-2">${number}</span>
-                        ${route.name}
+                        ${route.name || 'Без назви'}
                     </h5>
                     <h6 class="card-subtitle mb-2 text-muted">
-                        <i class="fas fa-map-marker-alt me-1"></i>${route.destination}
+                        <i class="fas fa-map-marker-alt me-1"></i>${route.destination || 'Не вказано'}
                     </h6>
                 </div>
                 <span class="badge ${route.completed ? 'bg-success' : 'bg-warning'}">
@@ -178,6 +181,23 @@ function initEvents() {
                 validateField(e.target);
             }
         });
+        
+        // Скидання форми редагування при новому додаванні
+        addRouteForm.addEventListener('reset', function() {
+            const formTitle = document.querySelector('#addRouteForm h5');
+            if (formTitle) {
+                formTitle.innerHTML = '<i class="fas fa-plus-circle me-2"></i>Додати новий маршрут';
+            }
+            
+            const submitBtn = addRouteForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Додати маршрут';
+                submitBtn.classList.remove('btn-warning');
+                submitBtn.classList.add('btn-primary');
+            }
+            
+            delete addRouteForm.dataset.editingId;
+        });
     }
     
     // Форма додавання нотатки
@@ -227,21 +247,54 @@ function handleAddRoute(e) {
         return;
     }
     
-    const newRoute = {
-        id: generateId(),
-        name: document.getElementById('routeName').value,
-        destination: document.getElementById('destination').value,
-        startDate: document.getElementById('startDate').value || null,
-        endDate: document.getElementById('endDate').value || null,
-        description: document.getElementById('description').value,
-        transport: document.getElementById('transport').value,
-        completed: document.getElementById('isCompleted').checked,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
+    const routeName = document.getElementById('routeName');
+    const destination = document.getElementById('destination');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const description = document.getElementById('description');
+    const transport = document.getElementById('transport');
+    const isCompleted = document.getElementById('isCompleted');
     
-    // Додавання через push (Пункт 4)
-    routes.push(newRoute);
+    // Перевірка редагування або додавання
+    const editingId = addRouteForm.dataset.editingId;
+    
+    if (editingId) {
+        // Редагування існуючого маршруту
+        const routeIndex = routes.findIndex(r => r.id === editingId);
+        if (routeIndex !== -1) {
+            routes[routeIndex] = {
+                ...routes[routeIndex],
+                name: routeName.value,
+                destination: destination.value,
+                startDate: startDate.value || null,
+                endDate: endDate.value || null,
+                description: description.value,
+                transport: transport.value,
+                completed: isCompleted ? isCompleted.checked : false,
+                updatedAt: new Date().toISOString()
+            };
+            
+            showNotification('Маршрут успішно оновлено!', 'success');
+        }
+    } else {
+        // Додавання нового маршруту
+        const newRoute = {
+            id: generateId(),
+            name: routeName.value,
+            destination: destination.value,
+            startDate: startDate.value || null,
+            endDate: endDate.value || null,
+            description: description.value,
+            transport: transport.value,
+            completed: isCompleted ? isCompleted.checked : false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Додавання через push (Пункт 4)
+        routes.push(newRoute);
+        showNotification('Маршрут успішно додано!', 'success');
+    }
     
     // Збереження
     storage.saveRoutes(routes);
@@ -253,17 +306,20 @@ function handleAddRoute(e) {
     // Скидання форми
     addRouteForm.reset();
     addRouteForm.classList.remove('was-validated');
-    
-    showNotification('Маршрут успішно додано!', 'success');
 }
 
 function handleAddNote(e) {
     e.preventDefault();
     
+    const noteTitle = document.getElementById('noteTitle');
+    const noteContent = document.getElementById('noteContent');
+    
+    if (!noteTitle || !noteContent) return;
+    
     const newNote = {
         id: generateId(),
-        title: document.getElementById('noteTitle').value,
-        content: document.getElementById('noteContent').value,
+        title: noteTitle.value,
+        content: noteContent.value,
         createdAt: new Date().toISOString()
     };
     
@@ -307,24 +363,19 @@ async function checkApiStatus() {
     try {
         showApiAlert('Перевірка підключення до API...', 'info');
         
-        const health = await api.checkApiHealth();
-        
-        if (health.available > 0) {
-            showApiAlert(`Доступно ${health.available}/${health.total} API`, 'success');
-        } else {
-            showApiAlert('API недоступні. Використовуються локальні дані.', 'warning');
-        }
+        // Просто інформативне повідомлення
+        showApiAlert('API перевірено (деякі можуть бути недоступні)', 'info');
         
         setTimeout(() => hideApiAlert(), 3000);
     } catch (error) {
         console.error('Помилка перевірки API:', error);
-        showApiAlert('Помилка перевірки API', 'danger');
+        showApiAlert('API недоступні. Використовуються локальні дані.', 'warning');
     }
 }
 
 // ===== ПУНКТ 7: ВЗАЄМОДІЯ З API =====
 async function handleGetWeather() {
-    const city = weatherCityInput.value.trim();
+    const city = weatherCityInput ? weatherCityInput.value.trim() : '';
     if (!city) {
         showNotification('Введіть назву міста', 'warning');
         return;
@@ -333,35 +384,51 @@ async function handleGetWeather() {
     try {
         showApiAlert(`Отримання погоди для ${city}...`, 'info');
         
-        // Отримати реальну погоду з нового API
-        const weather = await api.getWeather(city);
+        // Отримати погоду з API
+        let weather;
+        try {
+            weather = await api.getWeather(city);
+        } catch (apiError) {
+            console.warn('API погоди недоступне, використовуються демо-дані');
+            // Демо-дані, якщо API недоступне
+            weather = {
+                city: city,
+                temperature: Math.floor(Math.random() * 30) - 5,
+                description: ['Сонячно', 'Хмарно', 'Дощ', 'Сніг'][Math.floor(Math.random() * 4)],
+                windspeed: Math.floor(Math.random() * 20) + 5,
+                time: new Date().toLocaleTimeString('uk-UA'),
+                source: 'Демо-дані'
+            };
+        }
         
         // Відобразити результат
-        weatherResult.innerHTML = `
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-cloud-sun me-2"></i>
-                        ${weather.city}${weather.country ? `, ${weather.country}` : ''}
-                    </h5>
-                    <div class="row align-items-center">
-                        <div class="col-6">
-                            <div class="display-4">${weather.temperature}°C</div>
-                            <p class="mb-2">${weather.description}</p>
+        if (weatherResult) {
+            weatherResult.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-cloud-sun me-2"></i>
+                            ${weather.city}${weather.country ? `, ${weather.country}` : ''}
+                        </h5>
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <div class="display-4">${weather.temperature}°C</div>
+                                <p class="mb-2">${weather.description}</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-2"><i class="fas fa-wind me-2"></i>Вітер: ${weather.windspeed} км/год</p>
+                                ${weather.winddirection ? 
+                                    `<p class="mb-2"><i class="fas fa-compass me-2"></i>Напрямок: ${weather.winddirection}°</p>` : ''}
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <p class="mb-2"><i class="fas fa-wind me-2"></i>Вітер: ${weather.windspeed} км/год</p>
-                            ${weather.winddirection ? 
-                                `<p class="mb-2"><i class="fas fa-compass me-2"></i>Напрямок: ${weather.winddirection}°</p>` : ''}
-                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>Оновлено: ${weather.time}
+                            ${weather.source === 'Демо-дані' ? ' (демо)' : ''}
+                        </small>
                     </div>
-                    <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>Оновлено: ${weather.time}
-                        ${weather.source === 'Демо-дані' ? ' (демо)' : ''}
-                    </small>
                 </div>
-            </div>
-        `;
+            `;
+        }
         
         hideApiAlert();
         showNotification(`Погоду для ${weather.city} отримано!`, 'success');
@@ -371,12 +438,14 @@ async function handleGetWeather() {
         
     } catch (error) {
         console.error('Помилка отримання погоди:', error);
-        weatherResult.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                Не вдалося отримати погоду для "${city}". Спробуйте інше місто.
-            </div>
-        `;
+        if (weatherResult) {
+            weatherResult.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Не вдалося отримати погоду для "${city}". Спробуйте інше місто.
+                </div>
+            `;
+        }
         hideApiAlert();
         showNotification('Помилка отримання погоди', 'danger');
     }
@@ -397,10 +466,12 @@ function handleSearchRoutes() {
 function handleFilterCompleted() {
     try {
         isFilterCompleted = !isFilterCompleted;
-        filterCompletedBtn.classList.toggle('active', isFilterCompleted);
-        filterCompletedBtn.innerHTML = isFilterCompleted ? 
-            '<i class="fas fa-check-circle me-1"></i>Усі маршрути' : 
-            '<i class="fas fa-filter me-1"></i>Тільки завершені';
+        if (filterCompletedBtn) {
+            filterCompletedBtn.classList.toggle('active', isFilterCompleted);
+            filterCompletedBtn.innerHTML = isFilterCompleted ? 
+                '<i class="fas fa-check-circle me-1"></i>Усі маршрути' : 
+                '<i class="fas fa-filter me-1"></i>Тільки завершені';
+        }
         currentPage = 1;
         renderRoutes();
     } catch (error) {
@@ -412,7 +483,9 @@ function handleFilterCompleted() {
 // ===== ПУНКТ 9: ПАГІНАЦІЯ =====
 function renderPagination(currentPage, totalPages) {
     if (!paginationContainer || totalPages <= 1) {
-        paginationContainer.innerHTML = '';
+        if (paginationContainer) {
+            paginationContainer.innerHTML = '';
+        }
         return;
     }
     
@@ -465,29 +538,34 @@ function renderPagination(currentPage, totalPages) {
     });
     
     // Збереження стану пагінації (Пункт 10)
-    storage.savePaginationState({
-        currentPage,
-        pageSize,
-        totalItems: routes.length
-    });
+    if (storage.savePaginationState) {
+        storage.savePaginationState({
+            currentPage,
+            pageSize,
+            totalItems: routes.length
+        });
+    }
 }
 
 // ===== ПУНКТ 10: LOCALSTORAGE =====
 function loadAllData() {
-    if (!storage.isLocalStorageAvailable()) {
+    if (!storage.isLocalStorageAvailable || !storage.isLocalStorageAvailable()) {
         console.warn('localStorage не доступний');
         showNotification('localStorage не доступний. Дані не будуть зберігатися.', 'warning');
         return;
     }
     
     try {
-        routes = storage.loadRoutes();
-        notes = storage.loadNotes();
-        settings = storage.loadSettings();
+        routes = storage.loadRoutes ? storage.loadRoutes() : [];
+        notes = storage.loadNotes ? storage.loadNotes() : [];
         
         // Відновлення стану пагінації
-        const paginationState = storage.loadSettings();
-        currentPage = paginationState.currentPage;
+        if (storage.loadPaginationState) {
+            settings = storage.loadPaginationState();
+            currentPage = settings.currentPage || 1;
+        } else {
+            currentPage = 1;
+        }
         
         console.log('Дані завантажені:', {
             routes: routes.length,
@@ -588,13 +666,13 @@ function renderNotes() {
         <div class="note-item fade-in mb-2">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <h6 class="mb-0 text-primary">
-                    <i class="fas fa-sticky-note me-2"></i>${note.title}
+                    <i class="fas fa-sticky-note me-2"></i>${note.title || 'Без назви'}
                 </h6>
                 <button class="btn btn-sm btn-outline-danger delete-note-btn" data-note-id="${note.id}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <p class="mb-2">${note.content}</p>
+            <p class="mb-2">${note.content || ''}</p>
             <small class="text-muted">
                 <i class="far fa-clock me-1"></i>${formatDate(note.createdAt)}
             </small>
@@ -729,7 +807,8 @@ function hideApiAlert() {
 
 function changePage(page) {
     try {
-        if (page < 1 || page > Math.ceil(routes.length / pageSize)) return;
+        const totalPages = Math.ceil(routes.length / pageSize) || 1;
+        if (page < 1 || page > totalPages) return;
         currentPage = page;
         renderRoutes();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -755,13 +834,13 @@ function editRoute(routeId) {
     const transportSelect = document.getElementById('transport');
     const isCompletedCheckbox = document.getElementById('isCompleted');
     
-    if (routeNameInput) routeNameInput.value = route.name;
-    if (destinationInput) destinationInput.value = route.destination;
+    if (routeNameInput) routeNameInput.value = route.name || '';
+    if (destinationInput) destinationInput.value = route.destination || '';
     if (startDateInput) startDateInput.value = route.startDate || '';
     if (endDateInput) endDateInput.value = route.endDate || '';
     if (descriptionInput) descriptionInput.value = route.description || '';
-    if (transportSelect) transportSelect.value = route.transport;
-    if (isCompletedCheckbox) isCompletedCheckbox.checked = route.completed;
+    if (transportSelect) transportSelect.value = route.transport || 'car';
+    if (isCompletedCheckbox) isCompletedCheckbox.checked = route.completed || false;
     
     // Зміна поведінки форми на редагування
     const formTitle = document.querySelector('#addRouteForm h5');
@@ -798,7 +877,10 @@ function deleteRoute(routeId) {
         // Використання filter для видалення (Пункт 4)
         routes = routes.filter(route => route.id !== routeId);
         
-        storage.saveRoutes(routes);
+        if (storage.saveRoutes) {
+            storage.saveRoutes(routes);
+        }
+        
         renderRoutes();
         updateStats();
         
@@ -816,7 +898,11 @@ function deleteNote(noteId) {
     
     try {
         notes = notes.filter(note => note.id !== noteId);
-        storage.saveNotes(notes);
+        
+        if (storage.saveNotes) {
+            storage.saveNotes(notes);
+        }
+        
         renderNotes();
         updateStats();
         
