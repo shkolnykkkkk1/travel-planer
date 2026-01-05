@@ -3,10 +3,10 @@
 
 // Конфігурація API
 const API_CONFIG = {
-    REST_COUNTRIES: 'https://restcountries.com/v3.1',
+    REST_COUNTRIES: 'https://restcountries.com/v3.1/all',
     OPEN_METEO: 'https://api.open-meteo.com/v1/forecast',
     GEOCODING: 'https://geocoding-api.open-meteo.com/v1/search',
-    TIME_API: 'https://worldtimeapi.org/api'
+    TIME_API: 'https://worldtimeapi.org/api/timezone'
 };
 
 // ===== 1. КРАЇНИ ТА ГЕОГРАФІЯ =====
@@ -18,7 +18,7 @@ export async function getCountryInfo(countryCode) {
     try {
         console.log(`[API] Отримання інформації про країну: ${countryCode}`);
         
-        const response = await axios.get(`${API_CONFIG.REST_COUNTRIES}/alpha/${countryCode}`);
+        const response = await axios.get(`https://restcountries.com/v3.1/alpha/${countryCode}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -51,7 +51,7 @@ export async function searchCountries(query) {
     try {
         console.log(`[API] Пошук країн: ${query}`);
         
-        const response = await axios.get(`${API_CONFIG.REST_COUNTRIES}/name/${query}`);
+        const response = await axios.get(`https://restcountries.com/v3.1/name/${query}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -81,7 +81,7 @@ export async function getCountriesByRegion(region) {
     try {
         console.log(`[API] Отримання країн регіону: ${region}`);
         
-        const response = await axios.get(`${API_CONFIG.REST_COUNTRIES}/region/${region}`);
+        const response = await axios.get(`https://restcountries.com/v3.1/region/${region}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -217,7 +217,7 @@ export async function getWorldTime(timezone = 'Europe/Kiev') {
     try {
         console.log(`[API] Отримання часу для: ${timezone}`);
         
-        const response = await axios.get(`${API_CONFIG.TIME_API}/timezone/${timezone}`);
+        const response = await axios.get(`${API_CONFIG.TIME_API}/${timezone}`);
         
         if (response.status !== 200) {
             throw new Error(`HTTP помилка: ${response.status}`);
@@ -234,7 +234,15 @@ export async function getWorldTime(timezone = 'Europe/Kiev') {
         };
     } catch (error) {
         console.error('[API] Помилка отримання часу:', error);
-        throw new Error('Не вдалося отримати час');
+        // Повертаємо локальний час як фолбек
+        return {
+            timezone: timezone,
+            datetime: new Date().toLocaleString('uk-UA'),
+            day_of_week: new Date().getDay(),
+            day_of_year: Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000),
+            week_number: getWeekNumber(new Date()),
+            abbreviation: 'ЛОКАЛЬНИЙ'
+        };
     }
 }
 
@@ -248,10 +256,10 @@ export async function checkApiHealth() {
     
     try {
         // Перевіряємо кожне API з обробкою помилок
-        results.restCountries = await testApi(API_CONFIG.REST_COUNTRIES);
+        results.restCountries = await testApi('https://restcountries.com/v3.1/all');
         results.openMeteo = await testApi(`${API_CONFIG.OPEN_METEO}?latitude=50.45&longitude=30.52&current_weather=true`);
         results.geocoding = await testApi(`${API_CONFIG.GEOCODING}?name=Київ&count=1`);
-        results.timeApi = await testApi(`${API_CONFIG.TIME_API}/timezone/Europe/Kiev`);
+        results.timeApi = await testApi(`${API_CONFIG.TIME_API}/Europe/Kiev`);
         
         return {
             available: Object.values(results).filter(Boolean).length,
@@ -262,7 +270,7 @@ export async function checkApiHealth() {
     } catch (error) {
         console.error('[API] Помилка перевірки здоров\'я API:', error);
         return { 
-            available: 0, 
+            available: Object.values(results).filter(Boolean).length,
             total: 4, 
             details: results,
             error: error.message 
@@ -273,7 +281,7 @@ export async function checkApiHealth() {
 async function testApi(url) {
     try {
         const response = await axios.get(url, { 
-            timeout: 5000,
+            timeout: 3000,
             headers: {
                 'Accept': 'application/json'
             }
@@ -346,6 +354,12 @@ function getDemoWeather(cityName) {
         source: 'Демо-дані',
         isDemo: true
     };
+}
+
+function getWeekNumber(date) {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 }
 
 // Експорт всіх функцій
