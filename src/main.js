@@ -486,7 +486,7 @@ function loadAllData() {
         settings = storage.loadSettings();
         
         // Відновлення стану пагінації
-        const paginationState = storage.loadPaginationState();
+        const paginationState = storage.loadSettings();
         currentPage = paginationState.currentPage;
         
         console.log('Дані завантажені:', {
