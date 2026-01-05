@@ -1,0 +1,151 @@
+/* ===== СТИЛІ ДЛЯ TRAVEL PLANNER ===== */
+
+/* Кастомні стилі поверх Bootstrap */
+:root {
+    --travel-primary: #4a6fa5;
+    --travel-secondary: #6b8cbc;
+    --travel-accent: #ff7e5f;
+    --travel-light: #f8f9fa;
+    --travel-dark: #343a40;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Кастомні картки */
+.route-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-left: 4px solid var(--travel-primary);
+    margin-bottom: 15px;
+}
+
+.route-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.route-card.completed {
+    border-left-color: #28a745;
+    opacity: 0.9;
+}
+
+/* Стилі для нотаток */
+.note-item {
+    background: #fff9e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 3px solid #ffc107;
+    transition: all 0.2s ease;
+}
+
+.note-item:hover {
+    background: #fff3cd;
+}
+
+/* Анімації */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Стилі для погоди */
+.weather-info {
+    font-size: 0.9rem;
+}
+
+.weather-icon {
+    width: 50px;
+    height: 50px;
+}
+
+/* Пагінація */
+.pagination .page-item.active .page-link {
+    background-color: var(--travel-primary);
+    border-color: var(--travel-primary);
+}
+
+/* Адаптивність */
+@media (max-width: 768px) {
+    .card-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .stats-card .col-4 h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Прогрес бар для завантаження */
+.loader {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--travel-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Помилки та сповіщення */
+.error-message {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #721c24;
+}
+
+.success-message {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+    color: #155724;
+}
+
+/* Утиліти */
+.clickable {
+    cursor: pointer;
+}
+
+.text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Футер завжди внизу */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
