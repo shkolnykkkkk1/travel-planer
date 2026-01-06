@@ -1,6 +1,4 @@
-// ===== API МОДУЛЬ ДЛЯ TRAVEL PLANNER =====
 // Пункти 6, 7, 8: API запити, обробка помилок, HTTP запити
-
 // Конфігурація API
 const API_CONFIG = {
     REST_COUNTRIES: 'https://restcountries.com/v3.1',
@@ -9,11 +7,9 @@ const API_CONFIG = {
     TIME_API: 'https://worldtimeapi.org/api/timezone'
 };
 
-// ===== 1. КРАЇНИ ТА ГЕОГРАФІЯ =====
+// 1. КРАЇНИ ТА ГЕОГРАФІЯ
 
-/**
- * Отримати інформацію про країну
- */
+//Отримати інформацію про країну
 export async function getCountryInfo(countryCode) {
     try {
         console.log(`[API] Отримання інформації про країну: ${countryCode}`);
@@ -44,9 +40,8 @@ export async function getCountryInfo(countryCode) {
     }
 }
 
-/**
- * Пошук країн за назвою (Пункт 4 - filter)
- */
+//Пошук країн за назвою (Пункт 4 - filter)
+
 export async function searchCountries(query) {
     try {
         console.log(`[API] Пошук країн: ${query}`);
@@ -74,11 +69,9 @@ export async function searchCountries(query) {
     }
 }
 
-// ===== 2. РЕАЛЬНА ПОГОДА З OPEN-METEO =====
+// 2. РЕАЛЬНА ПОГОДА З OPEN-METEO 
 
-/**
- * Отримати реальну погоду для міста (Пункт 7)
- */
+// Отримати реальну погоду для міста (Пункт 7)
 export async function getWeather(cityName) {
     try {
         console.log(`[API] Отримання реальної погоди для: ${cityName}`);
@@ -117,9 +110,8 @@ export async function getWeather(cityName) {
     }
 }
 
-/**
- * Отримати координати міста (геокодування)
- */
+// Отримати координати міста (геокодування)
+
 async function getCityCoordinates(cityName) {
     try {
         const response = await axios.get(API_CONFIG.GEOCODING, {
@@ -148,9 +140,8 @@ async function getCityCoordinates(cityName) {
     }
 }
 
-/**
- * Отримати погоду за координатами
- */
+// Отримати погоду за координатами
+
 async function getWeatherByCoordinates(lat, lon) {
     const response = await axios.get(API_CONFIG.OPEN_METEO, {
         params: {
@@ -166,11 +157,9 @@ async function getWeatherByCoordinates(lat, lon) {
     return response.data;
 }
 
-// ===== 3. ЧАС ТА ЧАСОВІ ПОЯСИ =====
+// 3. ЧАС ТА ЧАСОВІ ПОЯСИ
 
-/**
- * Отримати поточний час для часового поясу (Пункт 7)
- */
+// Отримати поточний час для часового поясу (Пункт 7)
 export async function getWorldTime(timezone = 'Europe/Kiev') {
     try {
         console.log(`[API] Отримання часу для: ${timezone}`);
@@ -204,11 +193,9 @@ export async function getWorldTime(timezone = 'Europe/Kiev') {
     }
 }
 
-// ===== 4. ПЕРЕВІРКА API ТА ОБРОБКА ПОМИЛОК =====
+// 4. ПЕРЕВІРКА API ТА ОБРОБКА ПОМИЛОК
 
-/**
- * Перевірка доступності API (Пункт 8)
- */
+// Перевірка доступності API (Пункт 8)
 export async function checkApiHealth() {
     const results = {};
     
@@ -252,16 +239,14 @@ async function testApi(url) {
     }
 }
 
-/**
- * Симуляція затримки для демонстрації (Пункт 8)
- */
+// Симуляція затримки для демонстрації (Пункт 8)
+
 export function simulateDelay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Генератор випадкових помилок для тестування (Пункт 8)
- */
+// Генератор випадкових помилок для тестування (Пункт 8)
+
 export function generateRandomError() {
     const errors = [
         new Error('Мережева помилка: не вдається підключитися до сервера'),
@@ -274,7 +259,7 @@ export function generateRandomError() {
     return errors[Math.floor(Math.random() * errors.length)];
 }
 
-// ===== ДОПОМІЖНІ ФУНКЦІЇ =====
+// ДОПОМІЖНІ ФУНКЦІЇ 
 
 function getWeatherDescription(code) {
     const descriptions = {

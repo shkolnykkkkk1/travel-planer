@@ -1,9 +1,6 @@
-// ===== ГОЛОВНИЙ ФАЙЛ TRAVEL PLANNER =====
-// Всі пункти: 1-12 (без курсів валют)
-
 // Імпорти модулів
 import * as api from './api.js';
-import storage from './storage.js'; // Змінено з * as storage
+import storage from './storage.js';
 
 // ===== ГЛОБАЛЬНІ ЗМІННІ =====
 let routes = [];
@@ -434,7 +431,7 @@ async function handleGetWeather() {
         showNotification(`Погоду для ${weather.city} отримано!`, 'success');
         
         // Кешування результатів (Пункт 10)
-        storage.saveToCache(`weather_${city}`, weather, 600000); // 10 хвилин
+        storage.saveToCache(`weather_${city}`, weather, 600000);
         
     } catch (error) {
         console.error('Помилка отримання погоди:', error);
@@ -926,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ініціалізація проєкту
     init();
     
-    console.log('✅ Travel Planner готовий до роботи!');
+    console.log('Travel Planner готовий до роботи!');
 });
 
 // Експорт для тестування

@@ -1,4 +1,3 @@
-// ===== КОМПАКТНИЙ LOCALSTORAGE МОДУЛЬ =====
 // Пункт 10: localStorage та кешування даних
 
 const STORAGE = {
@@ -8,7 +7,7 @@ const STORAGE = {
     PAGINATION: 'travel_pagination'
 };
 
-// ===== ОСНОВНІ ФУНКЦІЇ =====
+// ОСНОВНІ ФУНКЦІЇ 
 export function saveRoutes(routes) {
     try {
         localStorage.setItem(STORAGE.ROUTES, JSON.stringify(routes));
@@ -49,7 +48,7 @@ export function loadNotes() {
     }
 }
 
-// ===== КЕШУВАННЯ ДАНИХ (Пункт 10) =====
+// КЕШУВАННЯ ДАНИХ (Пункт 10)
 export function saveToCache(key, data, ttl = 3600000) { // 1 година за замовчуванням
     try {
         const cache = loadCache();
@@ -96,7 +95,7 @@ function loadCache() {
     }
 }
 
-// ===== ПАГІНАЦІЯ (Пункт 9) =====
+// ПАГІНАЦІЯ (Пункт 9) 
 export function saveSettings(state) {
     try {
         localStorage.setItem(STORAGE.PAGINATION, JSON.stringify(state));
@@ -125,7 +124,7 @@ export function loadSettings() {
     }
 }
 
-// ===== УТІЛІТИ =====
+// УТІЛІТИ 
 export function clearStorage() {
     try {
         Object.values(STORAGE).forEach(key => {
