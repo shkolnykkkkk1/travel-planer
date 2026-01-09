@@ -46,7 +46,7 @@ travel-planner/
 Клонуйте репозиторій:
 
 bash
-git clone https://github.com/shkolnykkkk1/travel-planner.git
+git clone https://github.com/shkolnykkkkk1/travel-planner.git
 cd travel-planner
 Відкрийте проєкт у редакторі коду
 Рекомендується VS Code
@@ -63,7 +63,7 @@ Production версія
 -Зробіть push у гілку main
 -Зайдіть у налаштування репозиторія на GitHub
 -У розділі "Pages" виберіть гілку main та папку /root
--Сайт буде доступний за адресою: https://shkolnykkkk1.github.io/travel-planner/
+-Сайт буде доступний за адресою: https://shkolnykkkkk1.github.io/travel-planner/
 
 Спосіб 2: Локальний перегляд
 -Просто відкрийте index.html у браузері
